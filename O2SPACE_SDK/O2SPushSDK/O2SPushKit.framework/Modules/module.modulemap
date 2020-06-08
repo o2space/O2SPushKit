@@ -1,0 +1,6 @@
+framework module O2SPushKit {
+  umbrella header "O2SPushKit.h"
+
+  export *
+  module * { export * }
+}

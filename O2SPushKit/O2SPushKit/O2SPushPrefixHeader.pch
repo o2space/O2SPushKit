@@ -1,0 +1,28 @@
+//
+//  O2SPushPrefixHeader.pch
+//  O2SPushKit
+//
+//  Created by wkx on 2020/5/29.
+//  Copyright © 2020 O2Space. All rights reserved.
+//
+
+#ifndef O2SPushPrefixHeader_pch
+#define O2SPushPrefixHeader_pch
+
+#ifdef DEBUG
+//大于等于DebugLogLevel可打印
+#define DebugLogLevel 3
+
+//级别为1
+#define DebugLog(s, ...) if( 1 >= DebugLogLevel) NSLog(@"\n\n=================================== Log Level %d ===================================\n %s[line:%d] \n %@ \n===================================================================================\n", 1, __FUNCTION__, __LINE__, [NSString stringWithFormat:(s), ##__VA_ARGS__])
+
+#define DebugLogWithLevel(level,s, ...) if(level >= DebugLogLevel) NSLog(@"\n\n=================================== Log Level %d ===================================\n %s[line:%d] \n %@ \n===================================================================================\n", level, __FUNCTION__, __LINE__, [NSString stringWithFormat:(s), ##__VA_ARGS__])
+
+#else
+
+#define DebugLog(s, ...)
+#define DebugLogWithLevel(level,s, ...)
+
+#endif
+
+#endif /* O2SPushPrefixHeader_pch */

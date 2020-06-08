@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15705" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15706"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="stR-bE-gRl"/>
+                        <viewControllerLayoutGuide type="bottom" id="IP1-Hc-qnY"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="推送通知唯一标识Identifier,iOS10及以上相同将覆盖" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Yee-wW-zO5">
+                                <rect key="frame" x="28" y="104" width="358" height="40"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="40" id="muR-yg-LB2"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="gex-gJ-2ZV">
+                                <rect key="frame" x="38" y="162" width="80" height="44"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="80" id="1HB-NK-gbU"/>
+                                    <constraint firstAttribute="height" constant="44" id="9IS-ew-Gmm"/>
+                                </constraints>
+                                <state key="normal" title="添加"/>
+                                <connections>
+                                    <action selector="addLocalNotification:" destination="BYZ-38-t0r" eventType="touchUpInside" id="bMM-Es-zSH"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rv9-Wj-tyc">
+                                <rect key="frame" x="167" y="162" width="80" height="44"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="80" id="VNy-BY-Vq8"/>
+                                    <constraint firstAttribute="height" constant="44" id="jCi-vS-AO4"/>
+                                </constraints>
+                                <state key="normal" title="查询"/>
+                                <connections>
+                                    <action selector="selectLocalNotification:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Wd3-up-ryF"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Cb4-X6-uNM">
+                                <rect key="frame" x="296" y="162" width="80" height="44"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="44" id="BKj-bR-Djh"/>
+                                    <constraint firstAttribute="width" constant="80" id="UIe-qY-uKu"/>
+                                </constraints>
+                                <state key="normal" title="删除"/>
+                                <connections>
+                                    <action selector="deleteLocalNotification:" destination="BYZ-38-t0r" eventType="touchUpInside" id="fPm-oq-GuC"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1Ss-wp-wqT">
+                                <rect key="frame" x="275" y="44" width="123" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="sWA-mh-WXQ"/>
+                                </constraints>
+                                <state key="normal" title="应用系统设置页面"/>
+                                <connections>
+                                    <action selector="openSystemSetting:" destination="BYZ-38-t0r" eventType="touchUpInside" id="nJj-Ph-w63"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <constraints>
+                            <constraint firstItem="Yee-wW-zO5" firstAttribute="top" secondItem="stR-bE-gRl" secondAttribute="bottom" constant="60" id="1Sm-Dr-8Xo"/>
+                            <constraint firstItem="gex-gJ-2ZV" firstAttribute="top" secondItem="Yee-wW-zO5" secondAttribute="bottom" constant="18" id="72j-y0-FGX"/>
+                            <constraint firstItem="rv9-Wj-tyc" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="F5A-rI-W0L"/>
+                            <constraint firstItem="Cb4-X6-uNM" firstAttribute="top" secondItem="Yee-wW-zO5" secondAttribute="bottom" constant="18" id="Hrg-Xk-gIQ"/>
+                            <constraint firstItem="rv9-Wj-tyc" firstAttribute="top" secondItem="Yee-wW-zO5" secondAttribute="bottom" constant="18" id="TwW-QE-hEN"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="Cb4-X6-uNM" secondAttribute="trailing" constant="18" id="b5a-PH-WJQ"/>
+                            <constraint firstItem="gex-gJ-2ZV" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="18" id="bRn-g6-grT"/>
+                            <constraint firstAttribute="trailing" secondItem="1Ss-wp-wqT" secondAttribute="trailing" constant="16" id="bRp-oz-ojP"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="Yee-wW-zO5" secondAttribute="trailing" constant="8" id="dMA-oF-EDI"/>
+                            <constraint firstItem="1Ss-wp-wqT" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" constant="44" id="vhW-8A-cs9"/>
+                            <constraint firstItem="Yee-wW-zO5" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="8" id="ze4-J6-9fy"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="identifierTextField" destination="Yee-wW-zO5" id="NgJ-S5-qzP"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="131.8840579710145" y="137.94642857142856"/>
+        </scene>
+    </scenes>
+</document>
