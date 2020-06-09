@@ -552,7 +552,7 @@ void SendRawO2SPushHandActionRemoteResponseInfoCompletionHandlerIMP(id self, UIA
     }
     else
     {
-        class_addMethod([self.applicationDelegate class], rawHandleActionLocalNotificationSEL, (IMP)O2SPushHandActionLocalCompletionHandlerIMP, "v@:@@@@@");
+        class_addMethod([self.applicationDelegate class], rawHandleActionLocalNotificationSEL, (IMP)O2SPushHandActionLocalCompletionHandlerIMP, "v@:@@@@");
     }
     
     SEL rawHandleActionLocalNotificationResponseInfoSEL = @selector(application:handleActionWithIdentifier:forLocalNotification:withResponseInfo:completionHandler:);
@@ -614,7 +614,7 @@ void SendRawO2SPushHandActionRemoteResponseInfoCompletionHandlerIMP(id self, UIA
     }
     else
     {
-        class_addMethod([self.applicationDelegate class], rawHandleActionRemoteNotificationSEL, (IMP)O2SPushHandActionRemoteCompletionHandlerIMP, "v@:@@@@@");
+        class_addMethod([self.applicationDelegate class], rawHandleActionRemoteNotificationSEL, (IMP)O2SPushHandActionRemoteCompletionHandlerIMP, "v@:@@@@");
     }
     
     SEL rawHandleActionRemoteNotificationResponseInfoSEL = @selector(application:handleActionWithIdentifier:forRemoteNotification:withResponseInfo:completionHandler:);
