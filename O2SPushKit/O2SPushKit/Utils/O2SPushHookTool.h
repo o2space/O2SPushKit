@@ -11,6 +11,15 @@
 @interface O2SPushHookTool : NSObject
 
 /**
+本类中(不含父类)是否含有方法
+
+@param cls 原类
+@param m 方法
+@return 标识
+*/
++ (BOOL)hasMethodWithClass:(Class)cls method:(SEL)m;
+
+/**
  Hook钩子（实例方法）
 
  @param cls 原始类

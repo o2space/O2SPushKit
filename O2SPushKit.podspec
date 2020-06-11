@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'O2SPushKit'
-  s.version          = "1.0.0"
+  s.version          = "1.0.1"
   s.summary          = 'iOS 新老版本推送整合，统一API及输出'
   s.license          = 'MIT'
   s.author           = { "o2space" => "o2space@163.com" }

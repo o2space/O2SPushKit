@@ -11,17 +11,8 @@
 
 @implementation O2SPushHookTool
 
-/**
- 是否含有方法
-
- @param cls 原类
- @param m 方法
- @return 标识
- */
 + (BOOL)hasMethodWithClass:(Class)cls method:(SEL)m
 {
-    
-    
     BOOL hasMethod = NO;
     unsigned int outCountMethod = 0;
     Method * methods = class_copyMethodList(cls, &outCountMethod);

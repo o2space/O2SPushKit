@@ -14,7 +14,6 @@
 - (void)o2spushSetDelegate:(id<UIApplicationDelegate>)delegate
 {
     [O2SPushContext currentContext].applicationDelegate = delegate;
-    
     [self o2spushSetDelegate:delegate];
 }
 

@@ -8,11 +8,6 @@
 
 #import "O2SPushContext.h"
 
-extern const SEL o2spushHookHandleActionLocalNotificationSEL;
-extern const SEL o2spushHookHandleActionLocalNotificationResponseInfoSEL;
-extern const SEL o2spushHookHandleActionRemoteNotificationSEL;
-extern const SEL o2spushHookHandleActionRemoteNotificationResponseInfoSEL;
-
 @interface O2SPushContext (HookService)
 
 - (void)PublicSendRawO2SPush:(id<UIApplicationDelegate>)applicationDelegate application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification;
@@ -23,10 +18,10 @@ extern const SEL o2spushHookHandleActionRemoteNotificationResponseInfoSEL;
 
 - (void)PublicSendRawO2SPushHand:(id<UIApplicationDelegate>)applicationDelegate application:(UIApplication *)application actionIdentifier:(NSString *)actionIdentifier forRemoteNotification:(NSDictionary *)userInfo withResponseInfo:(NSDictionary *)responseInfo completionHandler:(void (^)(void))completionHandler;
 
-/**
- 勾取ApplicationDeleagte
- */
-- (void)hookApplicationDelegate;
+///**
+// 勾取ApplicationDeleagte
+// */
+- (void)hookApplicationDelegate:(NSObject *)delegate;
 
 /**
  保存用户设置的 UNDelegate

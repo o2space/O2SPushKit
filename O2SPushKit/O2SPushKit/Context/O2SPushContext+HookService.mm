@@ -9,6 +9,7 @@
 #import "O2SPushContext+HookService.h"
 #import "UIApplication+O2SPush.h"
 #import <objc/message.h>
+#import <objc/runtime.h>
 #import "O2SPushHookTool.h"
 
 struct O2SPushHookServiceMain
@@ -45,17 +46,29 @@ struct O2SPushHookServiceMain
 
 static O2SPushHookServiceMain o2spushHookServiceMain;
 
-static SEL o2spushHookDidRegisterForRemoteNotificationsWithDeviceTokenSEL = NSSelectorFromString(@"O2SPushApplication:didRegisterForRemoteNotificationsWithDeviceToken:");
-static SEL o2spushHookDidFailToRegisterForRemoteNotificationsWithErrorSEL = NSSelectorFromString(@"O2SPushApplication:didFailToRegisterForRemoteNotificationsWithError:");
+const SEL o2spushDidRegisterForRemoteNotificationsWithDeviceTokenSEL = NSSelectorFromString(@"application:didRegisterForRemoteNotificationsWithDeviceToken:");
+const SEL o2spushDidFailToRegisterForRemoteNotificationsWithErrorSEL = NSSelectorFromString(@"application:didFailToRegisterForRemoteNotificationsWithError:");
 
-static SEL o2spushHookDidReceiveRemoteNotificationSEL = NSSelectorFromString(@"O2SPushApplication:didReceiveRemoteNotification:");
-static SEL o2spushHookDidReceiveLocalNotificationSEL = NSSelectorFromString(@"O2SPushApplication:didReceiveLocalNotification:");
-static SEL o2spushHookFetchCompletionHandlerSEL = NSSelectorFromString(@"O2SPushApplication:didReceiveRemoteNotification:fetchCompletionHandler:");
+const SEL o2spushDidReceiveRemoteNotificationSEL = NSSelectorFromString(@"application:didReceiveRemoteNotification:");
+const SEL o2spushDidReceiveLocalNotificationSEL = NSSelectorFromString(@"application:didReceiveLocalNotification:");
+const SEL o2spushFetchCompletionHandlerSEL = NSSelectorFromString(@"application:didReceiveRemoteNotification:fetchCompletionHandler:");
 
-const SEL o2spushHookHandleActionLocalNotificationSEL = NSSelectorFromString(@"O2SPushApplication:handleActionWithIdentifier:forLocalNotification:completionHandler:");
-const SEL o2spushHookHandleActionLocalNotificationResponseInfoSEL = NSSelectorFromString(@"O2SPushApplication:handleActionWithIdentifier:forLocalNotification:withResponseInfo:completionHandler:");
-const SEL o2spushHookHandleActionRemoteNotificationSEL = NSSelectorFromString(@"O2SPushApplication:handleActionWithIdentifier:forRemoteNotification:completionHandler:");
-const SEL o2spushHookHandleActionRemoteNotificationResponseInfoSEL = NSSelectorFromString(@"O2SPushApplication:handleActionWithIdentifier:forRemoteNotification:withResponseInfo:completionHandler:");
+const SEL o2spushHandleActionLocalNotificationSEL = NSSelectorFromString(@"application:handleActionWithIdentifier:forLocalNotification:completionHandler:");
+const SEL o2spushHandleActionLocalNotificationResponseInfoSEL = NSSelectorFromString(@"application:handleActionWithIdentifier:forLocalNotification:withResponseInfo:completionHandler:");
+const SEL o2spushHandleActionRemoteNotificationSEL = NSSelectorFromString(@"application:handleActionWithIdentifier:forRemoteNotification:completionHandler:");
+const SEL o2spushHandleActionRemoteNotificationResponseInfoSEL = NSSelectorFromString(@"application:handleActionWithIdentifier:forRemoteNotification:withResponseInfo:completionHandler:");
+
+const SEL super_o2spushDidRegisterForRemoteNotificationsWithDeviceTokenSEL = NSSelectorFromString(@"O2SPushApplication:didRegisterForRemoteNotificationsWithDeviceToken:");
+const SEL super_o2spushDidFailToRegisterForRemoteNotificationsWithErrorSEL = NSSelectorFromString(@"O2SPushApplication:didFailToRegisterForRemoteNotificationsWithError:");
+
+const SEL super_o2spushDidReceiveRemoteNotificationSEL = NSSelectorFromString(@"O2SPushApplication:didReceiveRemoteNotification:");
+const SEL super_o2spushDidReceiveLocalNotificationSEL = NSSelectorFromString(@"O2SPushApplication:didReceiveLocalNotification:");
+const SEL super_o2spushFetchCompletionHandlerSEL = NSSelectorFromString(@"O2SPushApplication:didReceiveRemoteNotification:fetchCompletionHandler:");
+
+const SEL super_o2spushHandleActionLocalNotificationSEL = NSSelectorFromString(@"O2SPushApplication:handleActionWithIdentifier:forLocalNotification:completionHandler:");
+const SEL super_o2spushHandleActionLocalNotificationResponseInfoSEL = NSSelectorFromString(@"O2SPushApplication:handleActionWithIdentifier:forLocalNotification:withResponseInfo:completionHandler:");
+const SEL super_o2spushHandleActionRemoteNotificationSEL = NSSelectorFromString(@"O2SPushApplication:handleActionWithIdentifier:forRemoteNotification:completionHandler:");
+const SEL super_o2spushHandleActionRemoteNotificationResponseInfoSEL = NSSelectorFromString(@"O2SPushApplication:handleActionWithIdentifier:forRemoteNotification:withResponseInfo:completionHandler:");
 
 @implementation O2SPushContext (HookService)
 
@@ -77,6 +90,67 @@ const SEL o2spushHookHandleActionRemoteNotificationResponseInfoSEL = NSSelectorF
 
 #pragma mark - IMP 推送通知iOS10以下 Hook IMP
 
+#pragma mark DeviceToken
+
+// 获取 DeviceToken
+// ios3及以上 注册远程推送成功回调返回deviceToken
+// - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
+// hook或添加 最终方法实现
+static void O2SPushDidRegisterForRemoteNotificationsWithDeviceTokenIMP(id self, SEL cmd, UIApplication *application, NSData *deviceToken)
+{
+    [[O2SPushContext currentContext] didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
+    
+    // 派发回原方法
+    id<UIApplicationDelegate> delegater = (id<UIApplicationDelegate>)self;
+//    Class superClass = class_getSuperclass(delegater.class);
+//    struct objc_super supperInfo = {
+//        .receiver = delegater,
+//        .super_class = superClass
+//    };
+//
+//    if ([superClass instancesRespondToSelector:o2spushDidRegisterForRemoteNotificationsWithDeviceTokenSEL])
+//    {
+//        void(*action)(struct objc_super *, SEL, UIApplication *, NSData *) = (void(*)(struct objc_super *, SEL, UIApplication *, NSData *))objc_msgSendSuper;
+//        action (&supperInfo, o2spushDidRegisterForRemoteNotificationsWithDeviceTokenSEL, application, deviceToken);
+//    }
+    if ([delegater respondsToSelector:super_o2spushDidRegisterForRemoteNotificationsWithDeviceTokenSEL])
+    {
+        void(*action)(id, SEL, UIApplication *, NSData *) = (void(*)(id, SEL, UIApplication *, NSData *))objc_msgSend;
+        action (delegater, super_o2spushDidRegisterForRemoteNotificationsWithDeviceTokenSEL, application, deviceToken);
+    }
+
+}
+
+
+// 获取 DeviceToken 失败
+// ios3及以上 注册远程推送失败回调
+// - (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
+// hook或添加 最终方法实现
+static void O2SPushDidFailToRegisterForRemoteNotificationsWithErrorIMP(id self, SEL cmd, UIApplication *application, NSError *error)
+{
+    [[O2SPushContext currentContext] didFailToRegisterForRemoteNotificationsWithError:error];
+        
+    // 派发回原方法
+    id<UIApplicationDelegate> delegater = (id<UIApplicationDelegate>)self;
+//    Class superClass = class_getSuperclass(delegater.class);
+//    struct objc_super supperInfo = {
+//        .receiver = delegater,
+//        .super_class = superClass
+//    };
+//
+//    if ([superClass instancesRespondToSelector:o2spushDidFailToRegisterForRemoteNotificationsWithErrorSEL])
+//    {
+//        void(*action)(struct objc_super *, SEL, UIApplication *, NSError *) = (void(*)(struct objc_super *, SEL, UIApplication *, NSError *))objc_msgSendSuper;
+//        action (&supperInfo, o2spushDidFailToRegisterForRemoteNotificationsWithErrorSEL, application, error);
+//    }
+    if ([delegater respondsToSelector:super_o2spushDidFailToRegisterForRemoteNotificationsWithErrorSEL])
+    {
+        void(*action)(id, SEL, UIApplication *, NSError *) = (void(*)(id, SEL, UIApplication *, NSError *))objc_msgSend;
+        action (delegater, super_o2spushDidFailToRegisterForRemoteNotificationsWithErrorSEL, application, error);
+    }
+
+}
+
 #pragma mark 接收通知
 
 // ios3-ios10 远程推送
@@ -84,21 +158,33 @@ const SEL o2spushHookHandleActionRemoteNotificationResponseInfoSEL = NSSelectorF
 // hook或添加 最终方法实现
 static void O2SPushDidReceiveRemoteNotificationIMP(id self, SEL cmd, UIApplication *application, NSDictionary *userInfo)
 {
-    //不处理 已经基本无iOS6及以下版本用户
     [[O2SPushContext currentContext] didReceiveRemoteNotification:userInfo];
     // 派发回原方法
     SendRawO2SPushDidReceiveRemoteNotificationIMP(self, application, userInfo);
 }
+
 static void SendRawO2SPushDidReceiveRemoteNotificationIMP(id self, UIApplication *application, NSDictionary *userInfo)
 {
     // 派发回原方法
     id<UIApplicationDelegate> delegater = (id<UIApplicationDelegate>)self;
-    SEL hookDidReceiveRemoteNotificationSEL = o2spushHookDidReceiveRemoteNotificationSEL;
-    if ([delegater respondsToSelector:hookDidReceiveRemoteNotificationSEL])
+//    Class superClass = class_getSuperclass(delegater.class);
+//    struct objc_super supperInfo = {
+//        .receiver = delegater,
+//        .super_class = superClass
+//    };
+//
+//    if ([superClass instancesRespondToSelector:o2spushDidReceiveRemoteNotificationSEL])
+//    {
+//        void(*action)(struct objc_super *, SEL, UIApplication *, NSDictionary *) = (void(*)(struct objc_super *, SEL, UIApplication *, NSDictionary *))objc_msgSendSuper;
+//        action (&supperInfo, o2spushDidReceiveRemoteNotificationSEL, application, userInfo);
+//    }
+    
+    if ([delegater respondsToSelector:super_o2spushDidReceiveRemoteNotificationSEL])
     {
         void(*action)(id, SEL, UIApplication *, NSDictionary *) = (void(*)(id, SEL, UIApplication *, NSDictionary *))objc_msgSend;
-        action (delegater, hookDidReceiveRemoteNotificationSEL, application, userInfo);
+        action (delegater, super_o2spushDidReceiveRemoteNotificationSEL, application, userInfo);
     }
+
 }
 
 
@@ -130,11 +216,22 @@ static void SendRawO2SPushDidReceiveLocalNotificationIMP(id self, UIApplication 
 {
     // 派发回原方法
     id<UIApplicationDelegate> delegater = (id<UIApplicationDelegate>)self;
-    SEL hookDidReceiveLocalNotificationSEL = o2spushHookDidReceiveLocalNotificationSEL;
-    if ([delegater respondsToSelector:hookDidReceiveLocalNotificationSEL])
+//    Class superClass = class_getSuperclass(delegater.class);
+//    struct objc_super supperInfo = {
+//        .receiver = delegater,
+//        .super_class = superClass
+//    };
+//
+//    if ([superClass instancesRespondToSelector:o2spushDidReceiveLocalNotificationSEL])
+//    {
+//        void(*action)(struct objc_super *, SEL, UIApplication *, UILocalNotification *) = (void(*)(struct objc_super *, SEL, UIApplication *, UILocalNotification *))objc_msgSendSuper;
+//        action (&supperInfo, o2spushDidReceiveLocalNotificationSEL, application, notification);
+//    }
+    
+    if ([delegater respondsToSelector:super_o2spushDidReceiveLocalNotificationSEL])
     {
         void(*action)(id, SEL, UIApplication *, UILocalNotification *) = (void(*)(id, SEL, UIApplication *, UILocalNotification *))objc_msgSend;
-        action (delegater, hookDidReceiveLocalNotificationSEL, application, notification);
+        action (delegater, super_o2spushDidReceiveLocalNotificationSEL, application, notification);
     }
 }
 
@@ -164,11 +261,22 @@ static void SendRawO2SPushFetchCompletionHandlerIMP(id self, UIApplication *appl
 {
     // 派发回原方法
     id<UIApplicationDelegate> delegater = (id<UIApplicationDelegate>)self;
-    SEL hookFetchCompletionHandlerSEL = o2spushHookFetchCompletionHandlerSEL;
-    if ([delegater respondsToSelector:hookFetchCompletionHandlerSEL])
+//    Class superClass = class_getSuperclass(delegater.class);
+//    struct objc_super supperInfo = {
+//        .receiver = delegater,
+//        .super_class = superClass
+//    };
+//
+//    if ([superClass instancesRespondToSelector:o2spushFetchCompletionHandlerSEL])
+//    {
+//        void(*action)(struct objc_super *, SEL, UIApplication *, NSDictionary *, void (^)(UIBackgroundFetchResult)) = (void(*)(struct objc_super *, SEL, UIApplication *, NSDictionary *, void (^)(UIBackgroundFetchResult) ))objc_msgSendSuper;
+//        action (&supperInfo, o2spushFetchCompletionHandlerSEL, application, userInfo, completionHandler);
+//    }
+    if ([delegater respondsToSelector:super_o2spushFetchCompletionHandlerSEL])
     {
         void(*action)(id, SEL, UIApplication *, NSDictionary *, void (^)(UIBackgroundFetchResult)) = (void(*)(id, SEL, UIApplication *, NSDictionary *, void (^)(UIBackgroundFetchResult) ))objc_msgSend;
-        action (delegater, hookFetchCompletionHandlerSEL, application, userInfo, completionHandler);
+        action (delegater, super_o2spushFetchCompletionHandlerSEL, application, userInfo, completionHandler);
+
     }
     else
     {
@@ -185,45 +293,7 @@ static void SendRawO2SPushFetchCompletionHandlerIMP(id self, UIApplication *appl
 }
 
 
-#pragma mark DeviceToken
 
-// 获取 DeviceToken
-// ios3及以上 注册远程推送成功回调返回deviceToken
-// - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
-// hook或添加 最终方法实现
-static void O2SPushDidRegisterForRemoteNotificationsWithDeviceTokenIMP(id self, SEL cmd, UIApplication *application, NSData *deviceToken)
-{
-    [[O2SPushContext currentContext] didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
-    
-    // 派发回原方法
-    id<UIApplicationDelegate> delegater = (id<UIApplicationDelegate>)self;
-    SEL hookDidRegisterForRemoteNotificationsWithDeviceTokenSEL = o2spushHookDidRegisterForRemoteNotificationsWithDeviceTokenSEL;
-    if ([delegater respondsToSelector:hookDidRegisterForRemoteNotificationsWithDeviceTokenSEL])
-    {
-        void(*action)(id, SEL, UIApplication *, NSData *) = (void(*)(id, SEL, UIApplication *, NSData *))objc_msgSend;
-        action (delegater, hookDidRegisterForRemoteNotificationsWithDeviceTokenSEL, application, deviceToken);
-    }
-
-}
-
-
-// 获取 DeviceToken 失败
-// ios3及以上 注册远程推送失败回调
-// - (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
-// hook或添加 最终方法实现
-static void O2SPushDidFailToRegisterForRemoteNotificationsWithErrorIMP(id self, SEL cmd, UIApplication *application, NSError *error)
-{
-    [[O2SPushContext currentContext] didFailToRegisterForRemoteNotificationsWithError:error];
-    
-    // 派发回原方法
-    id<UIApplicationDelegate> delegater = (id<UIApplicationDelegate>)self;
-    SEL hookDidFailToRegisterForRemoteNotificationsWithErrorSEL = o2spushHookDidFailToRegisterForRemoteNotificationsWithErrorSEL;
-    if ([delegater respondsToSelector:hookDidFailToRegisterForRemoteNotificationsWithErrorSEL])
-    {
-        void(*action)(id, SEL, UIApplication *, NSError *) = (void(*)(id, SEL, UIApplication *, NSError *))objc_msgSend;
-        action (delegater, hookDidFailToRegisterForRemoteNotificationsWithErrorSEL, application, error);
-    }
-}
 
 
 #pragma mark iOS8-iOS10 Action,iOS10及以上在UNUserNotificationCenterDelegate实例方法内
@@ -243,12 +313,25 @@ static void SendRawO2SPushHandActionLocalCompletionHandlerIMP(id self, UIApplica
 {
     // 派发回原方法
     id<UIApplicationDelegate> delegater = (id<UIApplicationDelegate>)self;
-    SEL hookHandleActionLocalNotificationSEL = o2spushHookHandleActionLocalNotificationSEL;
-    if ([delegater respondsToSelector:hookHandleActionLocalNotificationSEL])
+//    Class superClass = class_getSuperclass(delegater.class);
+//    struct objc_super supperInfo = {
+//        .receiver = delegater,
+//        .super_class = superClass
+//    };
+//
+//    if ([superClass instancesRespondToSelector:o2spushHandleActionLocalNotificationSEL])
+//    {
+//        void(*action)(struct objc_super *, SEL, UIApplication *, NSString *, UILocalNotification *, void (^)()) = (void(*)(struct objc_super *, SEL, UIApplication *, NSString *, UILocalNotification *, void (^)()))objc_msgSendSuper;
+//        action (&supperInfo, o2spushHandleActionLocalNotificationSEL, application, identifier, notification, completionHandler);
+//    }
+    
+    if ([delegater respondsToSelector:super_o2spushHandleActionLocalNotificationSEL])
     {
         void(*action)(id, SEL, UIApplication *, NSString *, UILocalNotification *, void (^)()) = (void(*)(id, SEL, UIApplication *, NSString *, UILocalNotification *, void (^)()))objc_msgSend;
-        action (delegater, hookHandleActionLocalNotificationSEL, application, identifier, notification, completionHandler);
+        action (delegater, super_o2spushHandleActionLocalNotificationSEL, application, identifier, notification, completionHandler);
+
     }
+    
     if (completionHandler)
     {
         completionHandler();
@@ -271,16 +354,28 @@ static void SendRawO2SPushHandActionLocalResponseInfoCompletionHandlerIMP(id sel
 {
     // 派发回原方法
     id<UIApplicationDelegate> delegater = (id<UIApplicationDelegate>)self;
-    SEL hookHandleActionLocalNotificationResponseInfoSEL = o2spushHookHandleActionLocalNotificationResponseInfoSEL;
-    if ([delegater respondsToSelector:hookHandleActionLocalNotificationResponseInfoSEL])
+//    Class superClass = class_getSuperclass(delegater.class);
+//    struct objc_super supperInfo = {
+//        .receiver = delegater,
+//        .super_class = superClass
+//    };
+//
+//    if ([superClass instancesRespondToSelector:o2spushHandleActionLocalNotificationResponseInfoSEL])
+//    {
+//        void(*action)(struct objc_super *, SEL, UIApplication *, NSString *, UILocalNotification *, NSDictionary *, void (^)()) = (void(*)(struct objc_super *, SEL, UIApplication *, NSString *, UILocalNotification *, NSDictionary *, void (^)()))objc_msgSendSuper;
+//        action (&supperInfo, o2spushHandleActionLocalNotificationResponseInfoSEL, application, identifier, notification, responseInfo, completionHandler);
+//    }
+    if ([delegater respondsToSelector:super_o2spushHandleActionLocalNotificationResponseInfoSEL])
     {
         void(*action)(id, SEL, UIApplication *, NSString *, UILocalNotification *, NSDictionary *, void (^)()) = (void(*)(id, SEL, UIApplication *, NSString *, UILocalNotification *, NSDictionary *, void (^)()))objc_msgSend;
-        action (delegater, hookHandleActionLocalNotificationResponseInfoSEL, application, identifier, notification, responseInfo, completionHandler);
+        action (delegater, super_o2spushHandleActionLocalNotificationResponseInfoSEL, application, identifier, notification, responseInfo, completionHandler);
+
     }
     else
     {
         SendRawO2SPushHandActionLocalCompletionHandlerIMP(self, application, identifier, notification, completionHandler);
     }
+    
     if (completionHandler)
     {
         completionHandler();
@@ -307,13 +402,26 @@ static void O2SPushHandActionRemoteCompletionHandlerIMP(id self, SEL cmd, UIAppl
 }
 void SendRawO2SPushHandActionRemoteCompletionHandlerIMP(id self, UIApplication *application, NSString *identifier, NSDictionary *userInfo, void (^completionHandler)())
 {
+    // 派发回原方法
     id<UIApplicationDelegate> delegater = (id<UIApplicationDelegate>)self;
-    SEL hookHandleActionRemoteNotificationSEL = o2spushHookHandleActionRemoteNotificationSEL;
-    if ([delegater respondsToSelector:hookHandleActionRemoteNotificationSEL])
+//    Class superClass = class_getSuperclass(delegater.class);
+//    struct objc_super supperInfo = {
+//        .receiver = delegater,
+//        .super_class = superClass
+//    };
+//
+//    if ([superClass instancesRespondToSelector:o2spushHandleActionRemoteNotificationSEL])
+//    {
+//        void(*action)(struct objc_super *, SEL, UIApplication *, NSString *, NSDictionary *, void (^)()) = (void(*)(struct objc_super *, SEL, UIApplication *, NSString *, NSDictionary *, void (^)()))objc_msgSendSuper;
+//        action (&supperInfo, o2spushHandleActionRemoteNotificationSEL, application, identifier, userInfo, completionHandler);
+//    }
+    if ([delegater respondsToSelector:super_o2spushHandleActionRemoteNotificationSEL])
     {
         void(*action)(id, SEL, UIApplication *, NSString *, NSDictionary *, void (^)()) = (void(*)(id, SEL, UIApplication *, NSString *, NSDictionary *, void (^)()))objc_msgSend;
-        action (delegater, hookHandleActionRemoteNotificationSEL, application, identifier, userInfo, completionHandler);
+        action (delegater, super_o2spushHandleActionRemoteNotificationSEL, application, identifier, userInfo, completionHandler);
+
     }
+    
     if (completionHandler)
     {
         completionHandler();
@@ -334,12 +442,24 @@ static void O2SPushHandActionRemoteResponseInfoCompletionHandlerIMP(id self, SEL
 }
 void SendRawO2SPushHandActionRemoteResponseInfoCompletionHandlerIMP(id self, UIApplication *application, NSString *identifier, NSDictionary *userInfo, NSDictionary *responseInfo, void (^completionHandler)())
 {
+    // 派发回原方法
     id<UIApplicationDelegate> delegater = (id<UIApplicationDelegate>)self;
-    SEL hookHandleActionRemoteNotificationResponseInfoSEL = o2spushHookHandleActionRemoteNotificationResponseInfoSEL;
-    if ([delegater respondsToSelector:hookHandleActionRemoteNotificationResponseInfoSEL])
+//    Class superClass = class_getSuperclass(delegater.class);
+//    struct objc_super supperInfo = {
+//        .receiver = delegater,
+//        .super_class = superClass
+//    };
+//
+//    if ([superClass instancesRespondToSelector:o2spushHandleActionRemoteNotificationResponseInfoSEL])
+//    {
+//        void(*action)(struct objc_super *, SEL, UIApplication *, NSString *, NSDictionary *, NSDictionary *, void (^)()) = (void(*)(struct objc_super *, SEL, UIApplication *, NSString *, NSDictionary *, NSDictionary *, void (^)()))objc_msgSendSuper;
+//        action (&supperInfo, o2spushHandleActionRemoteNotificationResponseInfoSEL, application, identifier, userInfo, responseInfo, completionHandler);
+//    }
+    if ([delegater respondsToSelector:super_o2spushHandleActionRemoteNotificationResponseInfoSEL])
     {
         void(*action)(id, SEL, UIApplication *, NSString *, NSDictionary *, NSDictionary *, void (^)()) = (void(*)(id, SEL, UIApplication *, NSString *, NSDictionary *, NSDictionary *, void (^)()))objc_msgSend;
-        action (delegater, hookHandleActionRemoteNotificationResponseInfoSEL, application, identifier, userInfo, responseInfo, completionHandler);
+        action (delegater, super_o2spushHandleActionRemoteNotificationResponseInfoSEL, application, identifier, userInfo, responseInfo, completionHandler);
+
     }
     else
     {
@@ -356,296 +476,184 @@ void SendRawO2SPushHandActionRemoteResponseInfoCompletionHandlerIMP(id self, UIA
     SendRawO2SPushHandActionRemoteResponseInfoCompletionHandlerIMP(applicationDelegate, application, actionIdentifier, userInfo, responseInfo, completionHandler);
 }
 
+//static void O2SPush_HookedGetClass(Class cls, Class statedClass)
+//{
+//    Method method = class_getInstanceMethod(cls, @selector(class));
+//    IMP newIMP = imp_implementationWithBlock(^(id self) {
+//        return statedClass;
+//    });
+//    class_replaceMethod(cls, @selector(class), newIMP, method_getTypeEncoding(method));
+//}
+
 #pragma mark Hook
 
-- (void)hookApplicationDelegate
-{
-    if (self.applicationDelegate)
-    {
-        // 获取 deviceToken application:didRegisterForRemoteNotificationsWithDeviceToken:
-        SEL rawDidRegisterForRemoteNotificationsWithDeviceTokenSEL = @selector(application:didRegisterForRemoteNotificationsWithDeviceToken:);
-        if ([self.applicationDelegate respondsToSelector:rawDidRegisterForRemoteNotificationsWithDeviceTokenSEL])
-        {
-            SEL hookDidRegisterForRemoteNotificationsWithDeviceTokenSEL = o2spushHookDidRegisterForRemoteNotificationsWithDeviceTokenSEL;
-            if (![self.applicationDelegate respondsToSelector:hookDidRegisterForRemoteNotificationsWithDeviceTokenSEL])
-            {
-                // 添加方法
-                class_addMethod([self.applicationDelegate class], hookDidRegisterForRemoteNotificationsWithDeviceTokenSEL, (IMP)O2SPushDidRegisterForRemoteNotificationsWithDeviceTokenIMP, "v@:@@");
-            }
-            
-            if ([self.applicationDelegate respondsToSelector:hookDidRegisterForRemoteNotificationsWithDeviceTokenSEL])
-            {
-                //勾取方法
-                Method raw = class_getInstanceMethod([self.applicationDelegate class], rawDidRegisterForRemoteNotificationsWithDeviceTokenSEL);
-                Method hook = class_getInstanceMethod([self.applicationDelegate class], hookDidRegisterForRemoteNotificationsWithDeviceTokenSEL);
-                IMP imp1 = method_getImplementation(raw);
-                IMP imp2 = method_getImplementation(hook);
-                if (imp1 != imp2)
-                {
-                    method_setImplementation(raw, imp2);
-                    method_setImplementation(hook, imp1);
-                }
-                
-            }
-        }
-        else
-        {
-            class_addMethod([self.applicationDelegate class], rawDidRegisterForRemoteNotificationsWithDeviceTokenSEL, (IMP)O2SPushDidRegisterForRemoteNotificationsWithDeviceTokenIMP, "v@:@@");
-        }
+static NSString *const O2SPushSubclassPrefix = @"O2SPush_";
 
-        
-        // 获取 deviceToken 失败 application:didFailToRegisterForRemoteNotificationsWithError:
-        
-        SEL rawDidFailToRegisterForRemoteNotificationsWithErrorSEL = @selector(application:didFailToRegisterForRemoteNotificationsWithError:);
-        if ([self.applicationDelegate respondsToSelector:rawDidFailToRegisterForRemoteNotificationsWithErrorSEL])
+- (void)hookApplicationDelegate:(NSObject *)delegate
+{
+    Protocol *UIApplicationDelegateProtocol = NSProtocolFromString(@"UIApplicationDelegate");
+    if (UIApplicationDelegateProtocol && [delegate conformsToProtocol:UIApplicationDelegateProtocol])
+    {
+//        Class statedClass = delegate.class;
+        Class baseClass = object_getClass(delegate);
+        NSString *className = NSStringFromClass(baseClass);
+        if ([className hasPrefix:O2SPushSubclassPrefix])
         {
-            SEL hookDidFailToRegisterForRemoteNotificationsWithErrorSEL = o2spushHookDidFailToRegisterForRemoteNotificationsWithErrorSEL;
-            if (![self.applicationDelegate respondsToSelector:hookDidFailToRegisterForRemoteNotificationsWithErrorSEL])
+            return;
+        }
+        
+        const char *subclassName = [O2SPushSubclassPrefix stringByAppendingString:className].UTF8String;
+        Class subclass = objc_getClass(subclassName);
+        if (subclass == nil)
+        {
+            // 创建类
+            subclass = objc_allocateClassPair(baseClass, subclassName, 0);
+            if (subclass == nil)
             {
-                // 添加方法
-                class_addMethod([self.applicationDelegate class], hookDidFailToRegisterForRemoteNotificationsWithErrorSEL, (IMP)O2SPushDidFailToRegisterForRemoteNotificationsWithErrorIMP, "v@:@@");
+                return;
             }
             
-            if ([self.applicationDelegate respondsToSelector:hookDidFailToRegisterForRemoteNotificationsWithErrorSEL])
-            {
-                //勾取方法
-                Method raw = class_getInstanceMethod([self.applicationDelegate class], rawDidFailToRegisterForRemoteNotificationsWithErrorSEL);
-                Method hook = class_getInstanceMethod([self.applicationDelegate class], hookDidFailToRegisterForRemoteNotificationsWithErrorSEL);
-                IMP imp1 = method_getImplementation(raw);
-                IMP imp2 = method_getImplementation(hook);
-                if (imp1 != imp2)
-                {
-                    method_setImplementation(raw, imp2);
-                    method_setImplementation(hook, imp1);
-                }
-            }
-        }
-        else
-        {
-            class_addMethod([self.applicationDelegate class], rawDidFailToRegisterForRemoteNotificationsWithErrorSEL, (IMP)O2SPushDidFailToRegisterForRemoteNotificationsWithErrorIMP, "v@:@@");
-        }
-        
-        //收到本地消息 application:didReceiveLocalNotification:  [iOS 10以前本地通知]
-        SEL rawDidReceiveLocalNotificationSEL = @selector(application:didReceiveLocalNotification:);
-        if ([self.applicationDelegate respondsToSelector:rawDidReceiveLocalNotificationSEL])
-        {
-            SEL hookDidReceiveLocalNotificationSEL = o2spushHookDidReceiveLocalNotificationSEL;
-            if (![self.applicationDelegate respondsToSelector:hookDidReceiveLocalNotificationSEL])
-            {
-                // 添加方法
-                class_addMethod([self.applicationDelegate class], hookDidReceiveLocalNotificationSEL, (IMP)O2SPushDidReceiveLocalNotificationIMP, "v@:@@");
-            }
+            // 不更换.class方法为父类，如果更换后，通过父类访问自身方法，无法访问子类方法。
+//            O2SPush_HookedGetClass(subclass, statedClass);
+//            O2SPush_HookedGetClass(object_getClass(subclass), statedClass);
             
-            if ([self.applicationDelegate respondsToSelector:hookDidReceiveLocalNotificationSEL])
-            {
-                //勾取方法
-                Method raw = class_getInstanceMethod([self.applicationDelegate class], rawDidReceiveLocalNotificationSEL);
-                Method hook = class_getInstanceMethod([self.applicationDelegate class], hookDidReceiveLocalNotificationSEL);
-                IMP imp1 = method_getImplementation(raw);
-                IMP imp2 = method_getImplementation(hook);
-                if (imp1 != imp2)
-                {
-                    method_setImplementation(raw, imp2);
-                    method_setImplementation(hook, imp1);
-                }
-            }
-        }
-        else
-        {
-            // 直接添加handleOpenURL方法
-            class_addMethod([self.applicationDelegate class], rawDidReceiveLocalNotificationSEL, (IMP)O2SPushDidReceiveLocalNotificationIMP, "v@:@@");
-        }
-        
-        //收到远程消息 application:didReceiveRemoteNotification: [iOS 6 以前远程通知]
-        SEL rawDidReceiveRemoteNotificationSEL = @selector(application:didReceiveRemoteNotification:);
-        if ([self.applicationDelegate respondsToSelector:rawDidReceiveRemoteNotificationSEL])
-        {
-            SEL hookDidReceiveRemoteNotificationSEL = o2spushHookDidReceiveRemoteNotificationSEL;
-            if (![self.applicationDelegate respondsToSelector:hookDidReceiveRemoteNotificationSEL])
-            {
-                // 添加方法
-                class_addMethod([self.applicationDelegate class], hookDidReceiveRemoteNotificationSEL, (IMP)O2SPushDidReceiveRemoteNotificationIMP, "v@:@@");
-            }
+            // 注册
+            objc_registerClassPair(subclass);
             
-            if ([self.applicationDelegate respondsToSelector:hookDidReceiveRemoteNotificationSEL])
-            {
-                //勾取方法
-                Method raw = class_getInstanceMethod([self.applicationDelegate class], rawDidReceiveRemoteNotificationSEL);
-                Method hook = class_getInstanceMethod([self.applicationDelegate class], hookDidReceiveRemoteNotificationSEL);
-                IMP imp1 = method_getImplementation(raw);
-                IMP imp2 = method_getImplementation(hook);
-                if (imp1 != imp2)
-                {
-                    method_setImplementation(raw, imp2);
-                    method_setImplementation(hook, imp1);
-                }
-            }
+            // 备份父类方法Imp
+            [self backupsImpWithSuperclass:baseClass Subclass:subclass];
+            // 添加方法
+            [self hookAddMethodWithSubclass:subclass];
         }
-        else
+        else if (class_isMetaClass(baseClass))
         {
-            // 直接添加handleOpenURL方法
-            class_addMethod([self.applicationDelegate class], rawDidReceiveRemoteNotificationSEL, (IMP)O2SPushDidReceiveRemoteNotificationIMP, "v@:@@");
+            return;
+        }
+        else if ([baseClass isKindOfClass:subclass])//避免baseClass类是subclass的子类
+        {
+            return;
         }
         
-        //hook - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler [iOS 10 以前，6以后远程通知]
-        SEL rawFetchCompletionHandlerSEL = @selector(application:didReceiveRemoteNotification:fetchCompletionHandler:);
-        if ([self.applicationDelegate respondsToSelector:rawFetchCompletionHandlerSEL])
-        {
-            SEL hookFetchCompletionHandlerSEL = o2spushHookFetchCompletionHandlerSEL;
-            if (![self.applicationDelegate respondsToSelector:hookFetchCompletionHandlerSEL])
-            {
-                // 添加方法
-                class_addMethod([self.applicationDelegate class], hookFetchCompletionHandlerSEL, (IMP)O2SPushFetchCompletionHandlerIMP, "v@:@@@");
-            }
-            
-            if ([self.applicationDelegate respondsToSelector:hookFetchCompletionHandlerSEL])
-            {
-                //勾取方法
-                Method raw = class_getInstanceMethod([self.applicationDelegate class], rawFetchCompletionHandlerSEL);
-                Method hook = class_getInstanceMethod([self.applicationDelegate class], hookFetchCompletionHandlerSEL);
-                IMP imp1 = method_getImplementation(raw);
-                IMP imp2 = method_getImplementation(hook);
-                if (imp1 != imp2)
-                {
-                    method_setImplementation(raw, imp2);
-                    method_setImplementation(hook, imp1);
-                }
-            }
-        }
-        else
-        {
-            // 直接添加方法
-            class_addMethod([self.applicationDelegate class], rawFetchCompletionHandlerSEL, (IMP)O2SPushFetchCompletionHandlerIMP, "v@:@@@");
-        }
-        
-        [self hookApplicationDelegateWithHandAction];
+        //替换对象的ISA指针
+        object_setClass(delegate, subclass);
     }
 }
 
-- (void)hookApplicationDelegateWithHandAction
+- (void)backupsImpWithSuperclass:(Class)pclass Subclass:(Class)subclass
 {
-    
-    SEL rawHandleActionLocalNotificationSEL = @selector(application:handleActionWithIdentifier:forLocalNotification:completionHandler:);
-    if ([self.applicationDelegate respondsToSelector:rawHandleActionLocalNotificationSEL])
+    // super DeviceToken
+    if ([pclass instancesRespondToSelector:o2spushDidRegisterForRemoteNotificationsWithDeviceTokenSEL])
     {
-        SEL hookHandleActionLocalNotificationSEL = o2spushHookHandleActionLocalNotificationSEL;
-        if (![self.applicationDelegate respondsToSelector:hookHandleActionLocalNotificationSEL])
-        {
-            // 添加方法
-            class_addMethod([self.applicationDelegate class], hookHandleActionLocalNotificationSEL, (IMP)O2SPushHandActionLocalCompletionHandlerIMP, "v@:@@@@");
-        }
-        
-        if ([self.applicationDelegate respondsToSelector:hookHandleActionLocalNotificationSEL])
-        {
-            //勾取方法
-            Method raw = class_getInstanceMethod([self.applicationDelegate class], rawHandleActionLocalNotificationSEL);
-            Method hook = class_getInstanceMethod([self.applicationDelegate class], hookHandleActionLocalNotificationSEL);
-            IMP imp1 = method_getImplementation(raw);
-            IMP imp2 = method_getImplementation(hook);
-            if (imp1 != imp2)
-            {
-                method_setImplementation(raw, imp2);
-                method_setImplementation(hook, imp1);
-            }
-            
-        }
-    }
-    else
-    {
-        class_addMethod([self.applicationDelegate class], rawHandleActionLocalNotificationSEL, (IMP)O2SPushHandActionLocalCompletionHandlerIMP, "v@:@@@@");
+        IMP imp = [pclass instanceMethodForSelector:o2spushDidRegisterForRemoteNotificationsWithDeviceTokenSEL];
+        class_addMethod(subclass, super_o2spushDidRegisterForRemoteNotificationsWithDeviceTokenSEL, imp, "v@:@@");
     }
     
-    SEL rawHandleActionLocalNotificationResponseInfoSEL = @selector(application:handleActionWithIdentifier:forLocalNotification:withResponseInfo:completionHandler:);
-    if ([self.applicationDelegate respondsToSelector:rawHandleActionLocalNotificationResponseInfoSEL])
+    if ([pclass instancesRespondToSelector:o2spushDidFailToRegisterForRemoteNotificationsWithErrorSEL])
     {
-        SEL hookHookHandleActionLocalNotificationResponseInfoSEL = o2spushHookHandleActionLocalNotificationResponseInfoSEL;
-        if (![self.applicationDelegate respondsToSelector:hookHookHandleActionLocalNotificationResponseInfoSEL])
-        {
-            // 添加方法
-            class_addMethod([self.applicationDelegate class], hookHookHandleActionLocalNotificationResponseInfoSEL, (IMP)O2SPushHandActionLocalResponseInfoCompletionHandlerIMP, "v@:@@@@@");
-        }
-        
-        if ([self.applicationDelegate respondsToSelector:hookHookHandleActionLocalNotificationResponseInfoSEL])
-        {
-            //勾取方法
-            Method raw = class_getInstanceMethod([self.applicationDelegate class], rawHandleActionLocalNotificationResponseInfoSEL);
-            Method hook = class_getInstanceMethod([self.applicationDelegate class], hookHookHandleActionLocalNotificationResponseInfoSEL);
-            IMP imp1 = method_getImplementation(raw);
-            IMP imp2 = method_getImplementation(hook);
-            if (imp1 != imp2)
-            {
-                method_setImplementation(raw, imp2);
-                method_setImplementation(hook, imp1);
-            }
-            
-        }
+        IMP imp = [pclass instanceMethodForSelector:o2spushDidFailToRegisterForRemoteNotificationsWithErrorSEL];
+        class_addMethod(subclass, super_o2spushDidFailToRegisterForRemoteNotificationsWithErrorSEL, imp, "v@:@@");
     }
-    else
+    
+    // super 消息接收
+    if ([pclass instancesRespondToSelector:o2spushDidReceiveRemoteNotificationSEL])
     {
-        class_addMethod([self.applicationDelegate class], rawHandleActionLocalNotificationResponseInfoSEL, (IMP)O2SPushHandActionLocalResponseInfoCompletionHandlerIMP, "v@:@@@@@");
+        IMP imp = [pclass instanceMethodForSelector:o2spushDidReceiveRemoteNotificationSEL];
+        class_addMethod(subclass, super_o2spushDidReceiveRemoteNotificationSEL, imp, "v@:@@");
+    }
+    
+    if ([pclass instancesRespondToSelector:o2spushDidReceiveLocalNotificationSEL])
+    {
+        IMP imp = [pclass instanceMethodForSelector:o2spushDidReceiveLocalNotificationSEL];
+        class_addMethod(subclass, super_o2spushDidReceiveLocalNotificationSEL, imp, "v@:@@");
+    }
+    
+    if ([pclass instancesRespondToSelector:o2spushFetchCompletionHandlerSEL])
+    {
+        IMP imp = [pclass instanceMethodForSelector:o2spushFetchCompletionHandlerSEL];
+        class_addMethod(subclass, super_o2spushFetchCompletionHandlerSEL, imp, "v@:@@@");
+    }
+    
+    // super Action
+    if ([pclass instancesRespondToSelector:o2spushHandleActionLocalNotificationSEL])
+    {
+        IMP imp = [pclass instanceMethodForSelector:o2spushHandleActionLocalNotificationSEL];
+        class_addMethod(subclass, super_o2spushHandleActionLocalNotificationSEL, imp, "v@:@@@@");
+    }
+    
+    if ([pclass instancesRespondToSelector:o2spushHandleActionLocalNotificationResponseInfoSEL])
+    {
+        IMP imp = [pclass instanceMethodForSelector:o2spushHandleActionLocalNotificationResponseInfoSEL];
+        class_addMethod(subclass, super_o2spushHandleActionLocalNotificationResponseInfoSEL, imp, "v@:@@@@@");
+    }
+    
+    if ([pclass instancesRespondToSelector:o2spushHandleActionRemoteNotificationSEL])
+    {
+        IMP imp = [pclass instanceMethodForSelector:o2spushHandleActionRemoteNotificationSEL];
+        class_addMethod(subclass, super_o2spushHandleActionRemoteNotificationSEL, imp, "v@:@@@@");
+    }
+    
+    if ([pclass instancesRespondToSelector:o2spushHandleActionRemoteNotificationResponseInfoSEL])
+    {
+        IMP imp = [pclass instanceMethodForSelector:o2spushHandleActionRemoteNotificationResponseInfoSEL];
+        class_addMethod(subclass, super_o2spushHandleActionRemoteNotificationResponseInfoSEL, imp, "v@:@@@@@");
+    }
+    
+}
+
+- (void)hookAddMethodWithSubclass:(Class)subclass
+{
+    // DeviceToken
+    if (![O2SPushHookTool hasMethodWithClass:subclass method:o2spushDidRegisterForRemoteNotificationsWithDeviceTokenSEL])
+    {
+         class_addMethod(subclass, o2spushDidRegisterForRemoteNotificationsWithDeviceTokenSEL, (IMP)O2SPushDidRegisterForRemoteNotificationsWithDeviceTokenIMP, "v@:@@");
+    }
+    
+    if (![O2SPushHookTool hasMethodWithClass:subclass method:o2spushDidFailToRegisterForRemoteNotificationsWithErrorSEL])
+    {
+        class_addMethod(subclass, o2spushDidFailToRegisterForRemoteNotificationsWithErrorSEL, (IMP)O2SPushDidFailToRegisterForRemoteNotificationsWithErrorIMP, "v@:@@");
+    }
+    
+    // iOS10以下 推送接收
+    if (![O2SPushHookTool hasMethodWithClass:subclass method:o2spushDidReceiveRemoteNotificationSEL])
+    {
+        class_addMethod(subclass, o2spushDidReceiveRemoteNotificationSEL, (IMP)O2SPushDidReceiveRemoteNotificationIMP, "v@:@@");
+    }
+    
+    if (![O2SPushHookTool hasMethodWithClass:subclass method:o2spushDidReceiveLocalNotificationSEL])
+    {
+        class_addMethod(subclass, o2spushDidReceiveLocalNotificationSEL, (IMP)O2SPushDidReceiveLocalNotificationIMP, "v@:@@");
+    }
+    
+    if (![O2SPushHookTool hasMethodWithClass:subclass method:o2spushFetchCompletionHandlerSEL])
+    {
+        class_addMethod(subclass, o2spushFetchCompletionHandlerSEL, (IMP)O2SPushFetchCompletionHandlerIMP, "v@:@@@");
     }
     
     
-    
-    SEL rawHandleActionRemoteNotificationSEL = @selector(application:handleActionWithIdentifier:forRemoteNotification:completionHandler:);
-    if ([self.applicationDelegate respondsToSelector:rawHandleActionRemoteNotificationSEL])
+    // iOS10以下 Action
+    if (![O2SPushHookTool hasMethodWithClass:subclass method:o2spushHandleActionLocalNotificationSEL])
     {
-        SEL hookHandleActionRemoteNotificationSEL = o2spushHookHandleActionRemoteNotificationSEL;
-        if (![self.applicationDelegate respondsToSelector:hookHandleActionRemoteNotificationSEL])
-        {
-            // 添加方法
-            class_addMethod([self.applicationDelegate class], hookHandleActionRemoteNotificationSEL, (IMP)O2SPushHandActionRemoteCompletionHandlerIMP, "v@:@@@@");
-        }
-        
-        if ([self.applicationDelegate respondsToSelector:hookHandleActionRemoteNotificationSEL])
-        {
-            //勾取方法
-            Method raw = class_getInstanceMethod([self.applicationDelegate class], rawHandleActionRemoteNotificationSEL);
-            Method hook = class_getInstanceMethod([self.applicationDelegate class], hookHandleActionRemoteNotificationSEL);
-            IMP imp1 = method_getImplementation(raw);
-            IMP imp2 = method_getImplementation(hook);
-            if (imp1 != imp2)
-            {
-                method_setImplementation(raw, imp2);
-                method_setImplementation(hook, imp1);
-            }
-            
-        }
-    }
-    else
-    {
-        class_addMethod([self.applicationDelegate class], rawHandleActionRemoteNotificationSEL, (IMP)O2SPushHandActionRemoteCompletionHandlerIMP, "v@:@@@@");
+        class_addMethod(subclass, o2spushHandleActionLocalNotificationSEL, (IMP)O2SPushHandActionLocalCompletionHandlerIMP, "v@:@@@@");
     }
     
-    SEL rawHandleActionRemoteNotificationResponseInfoSEL = @selector(application:handleActionWithIdentifier:forRemoteNotification:withResponseInfo:completionHandler:);
-    if ([self.applicationDelegate respondsToSelector:rawHandleActionRemoteNotificationResponseInfoSEL])
+    if (![O2SPushHookTool hasMethodWithClass:subclass method:o2spushHandleActionLocalNotificationResponseInfoSEL])
     {
-        SEL hookHookHandleActionRemoteNotificationResponseInfoSEL = o2spushHookHandleActionRemoteNotificationResponseInfoSEL;
-        if (![self.applicationDelegate respondsToSelector:hookHookHandleActionRemoteNotificationResponseInfoSEL])
-        {
-            // 添加方法
-            class_addMethod([self.applicationDelegate class], hookHookHandleActionRemoteNotificationResponseInfoSEL, (IMP)O2SPushHandActionRemoteResponseInfoCompletionHandlerIMP, "v@:@@@@@");
-        }
-        
-        if ([self.applicationDelegate respondsToSelector:hookHookHandleActionRemoteNotificationResponseInfoSEL])
-        {
-            //勾取方法
-            Method raw = class_getInstanceMethod([self.applicationDelegate class], rawHandleActionRemoteNotificationResponseInfoSEL);
-            Method hook = class_getInstanceMethod([self.applicationDelegate class], hookHookHandleActionRemoteNotificationResponseInfoSEL);
-            IMP imp1 = method_getImplementation(raw);
-            IMP imp2 = method_getImplementation(hook);
-            if (imp1 != imp2)
-            {
-                method_setImplementation(raw, imp2);
-                method_setImplementation(hook, imp1);
-            }
-            
-        }
+        class_addMethod(subclass, o2spushHandleActionLocalNotificationResponseInfoSEL, (IMP)O2SPushHandActionLocalResponseInfoCompletionHandlerIMP, "v@:@@@@@");
     }
-    else
+    
+    if (![O2SPushHookTool hasMethodWithClass:subclass method:o2spushHandleActionRemoteNotificationSEL])
     {
-        class_addMethod([self.applicationDelegate class], rawHandleActionRemoteNotificationResponseInfoSEL, (IMP)O2SPushHandActionRemoteResponseInfoCompletionHandlerIMP, "v@:@@@@@");
+        class_addMethod(subclass, o2spushHandleActionRemoteNotificationSEL, (IMP)O2SPushHandActionRemoteCompletionHandlerIMP, "v@:@@@@");
     }
+    
+    if (![O2SPushHookTool hasMethodWithClass:subclass method:o2spushHandleActionRemoteNotificationResponseInfoSEL])
+    {
+        class_addMethod(subclass, o2spushHandleActionRemoteNotificationResponseInfoSEL, (IMP)O2SPushHandActionRemoteResponseInfoCompletionHandlerIMP, "v@:@@@@@");
+    }
+    
+    //  父类是否实现了
+    
+    
 }
 
 @end

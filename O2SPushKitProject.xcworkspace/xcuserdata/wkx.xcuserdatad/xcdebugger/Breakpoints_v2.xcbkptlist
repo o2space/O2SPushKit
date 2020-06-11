@@ -34,6 +34,38 @@
             endingLineNumber = "610"
             landmarkName = "-userNotificationCenter:willPresentNotification:withCompletionHandler:"
             landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "99259505-10B8-483E-8017-EB1AA5DE4D18 - db0d42d5d828a2fd"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "-[O2SPushContext userNotificationCenter:willPresentNotification:withCompletionHandler:]"
+                  moduleName = "O2SPushKitDemo"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/wkx/Documents/Develop/git_develop/github/O2SPushKit/O2SPushKit/O2SPushKit/Context/O2SPushContext.m"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "611"
+                  endingLineNumber = "611"
+                  offsetFromSymbolStart = "4228">
+               </Location>
+               <Location
+                  uuid = "99259505-10B8-483E-8017-EB1AA5DE4D18 - db0d42d5d828a2fd"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "-[O2SPushContext userNotificationCenter:willPresentNotification:withCompletionHandler:]"
+                  moduleName = "O2SPushKitDemo"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/wkx/Documents/Develop/git_develop/github/O2SPushKit/O2SPushKit/O2SPushKit/Context/O2SPushContext.m"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "611"
+                  endingLineNumber = "611"
+                  offsetFromSymbolStart = "4248">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy

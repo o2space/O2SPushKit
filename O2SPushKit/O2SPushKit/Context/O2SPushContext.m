@@ -130,40 +130,15 @@ NSString *const O2SPushCommandClearBadge = @"O2SPush_Command_ClearBadge";
 
 - (void)setApplicationDelegate:(id<UIApplicationDelegate>)applicationDelegate
 {
-    if (!_appDelegates)
+    if (applicationDelegate != nil)
     {
-        _appDelegates = [NSMutableArray array];
-    }
-    
-    Class delegateClass = [applicationDelegate class];
-    
-    BOOL hasHooked = NO;
-    
-    for (Class obj in _appDelegates)
-    {
-        if ([applicationDelegate isKindOfClass:obj])
+        if (_applicationDelegate != applicationDelegate)
         {
-            hasHooked = YES;
-            break;
+            _applicationDelegate = applicationDelegate;
+
+            [self hookApplicationDelegate:applicationDelegate];
         }
     }
-    
-    if (delegateClass && !hasHooked)
-    {
-        _applicationDelegate = applicationDelegate;
-        [_appDelegates addObject:delegateClass];
-        [self hookApplicationDelegate];
-    }
-    
-//    if (applicationDelegate != nil)
-//    {
-//        if (_applicationDelegate != applicationDelegate)
-//        {
-//            _applicationDelegate = applicationDelegate;
-//
-//            [self hookApplicationDelegate];
-//        }
-//    }
 }
 
 - (void)setUnDelegate:(id)unDelegate
