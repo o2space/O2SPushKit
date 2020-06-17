@@ -26,7 +26,7 @@
 
 - (instancetype)initApnsNotificationWithDict:(NSDictionary *)dict
 {
-    if (self == [super init])
+    if (self = [super init])
     {
         self.userInfo = dict;
         NSDictionary *apsDic = dict[@"aps"];
